@@ -1,0 +1,316 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Icon from '../components/Icon/Icon.astro'
+import PostCard from '../components/PostCard.astro'
+import { site, sayings } from '../config'
+import { getPosts, getNotes, stripMarkdown } from '../lib/content'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+
+// 直接从表层目录读取，过滤草稿并按置顶 / 时间排序
+const posts = getPosts().filter((p) => !p.draft)
+posts.sort((a, b) => {
+  if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
+  return b.date.getTime() - a.date.getTime()
+})
+
+const notes = getNotes().filter((n) => !n.draft)
+
+// 随机一言（构建时挑选，避免闪烁）
+const saying = sayings[Math.floor(Math.random() * sayings.length)]
+
+const recentPosts = posts.slice(0, 4)
+const recentNotes = notes.slice(0, 3)
+---
+
+<BaseLayout>
+  <!-- Hero -->
+  <section class="hero container-xxl">
+    <div class="hero__avatar anim-up" style="animation-delay: 0.05s">
+      <img src={`${base}${site.author.avatar}`} alt={site.author.name} width="130" height="130" />
+    </div>
+
+    <div class="hero__info">
+      <h1 class="hero__name anim-up" style="animation-delay: 0.1s">
+        {site.author.name}
+      </h1>
+      <p class="hero__intro anim-up" style="animation-delay: 0.18s">
+        {site.introduction}
+      </p>
+
+      <p class="hero__saying anim-up" style="animation-delay: 0.26s">
+        <span class="hero__saying-mark">「</span>{saying}<span class="hero__saying-mark">」</span>
+      </p>
+
+      <div class="hero__social anim-up" style="animation-delay: 0.34s">
+        {
+          site.social.map((item) => (
+            <a
+              href={item.url.startsWith('http') ? item.url : `${base}${item.url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={item.title}
+              title={item.title}
+            >
+              <Icon name={item.icon} size="1.05em" />
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- 最新博文 -->
+  <section class="section container-xxl">
+    <div class="section__head">
+      <h2 class="section__title">
+        <span class="section__title-char">文</span>
+        <span>最近写的东西</span>
+      </h2>
+      <a class="section__more" href={`${base}/posts`}>
+        全部博文 <Icon name="arrow-right" size="0.8em" />
+      </a>
+    </div>
+
+    {
+      recentPosts.length === 0 ? (
+        <p class="empty">还没有文章，在仓库根目录的 posts/ 里新建一个 .md 就能发布。</p>
+      ) : (
+        <div class="post-list">
+          {recentPosts.map((post, i) => (
+            <PostCard post={post} delay={0.06 * i} />
+          ))}
+        </div>
+      )
+    }
+  </section>
+
+  <!-- 最近手记 -->
+  <section class="section container-xxl">
+    <div class="section__head">
+      <h2 class="section__title">
+        <span class="section__title-char">记</span>
+        <span>随手写的句子</span>
+      </h2>
+      <a class="section__more" href={`${base}/notes`}>
+        全部手记 <Icon name="arrow-right" size="0.8em" />
+      </a>
+    </div>
+
+    {
+      recentNotes.length === 0 ? (
+        <p class="empty">还没有手记，在仓库根目录的 notes/ 里新建一个 .md 就能写。</p>
+      ) : (
+        <div class="note-list">
+          {recentNotes.map((note, i) => (
+            <a
+              href={`${base}/notes#${note.id}`}
+              class="note-card surface"
+              style={`animation-delay:${0.06 * i}s`}
+            >
+              <time datetime={note.date.toISOString()}>
+                {note.date.toLocaleDateString('zh-CN', {
+                  month: '2-digit',
+                  day: '2-digit',
+                })}
+              </time>
+              <div class="note-card__body">
+                <p>{stripMarkdown(note.body).slice(0, 90)}…</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  /* ---------- Hero ---------- */
+  .hero {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding-block: 3rem 1rem;
+  }
+
+  .hero__avatar img {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 3px solid var(--surface-solid);
+    box-shadow: 0 0 0 3px var(--primary-glow), var(--shadow-card);
+    transition: transform 0.5s var(--ease-spring);
+  }
+
+  .hero__avatar img:hover {
+    transform: scale(1.05) rotate(-3deg);
+  }
+
+  .hero__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .hero__name {
+    font-size: 2rem;
+    margin: 0 0 0.4rem;
+    letter-spacing: 0.02em;
+  }
+
+  .hero__name::after {
+    content: '。';
+    color: var(--primary);
+  }
+
+  .hero__intro {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .hero__saying {
+    font-family: var(--serif-font);
+    font-size: 0.92rem;
+    color: var(--primary-ink);
+    margin-bottom: 1.25rem;
+  }
+
+  .hero__saying-mark {
+    opacity: 0.5;
+  }
+
+  .hero__social {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .hero__social a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 1.05rem;
+    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out);
+    box-shadow: 0 4px 12px var(--primary-glow);
+  }
+
+  .hero__social a:hover {
+    transform: translateY(-4px);
+    opacity: 1;
+    box-shadow: 0 8px 20px var(--primary-glow);
+  }
+
+  /* ---------- 分区 ---------- */
+  .section {
+    margin-top: 4rem;
+  }
+
+  .section__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section__title {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 1.2rem;
+    margin: 0;
+  }
+
+  .section__title-char {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .section__more {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .section__more:hover {
+    color: var(--primary);
+  }
+
+  .post-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .note-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1rem;
+  }
+
+  .note-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.1rem 1.25rem;
+    color: var(--text);
+    animation: bottom-to-up 0.55s var(--ease-spring) both;
+    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out);
+  }
+
+  .note-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    opacity: 1;
+  }
+
+  .note-card time {
+    font-family: var(--mono-font);
+    font-size: 0.75rem;
+    color: var(--primary-ink);
+  }
+
+  .note-card__body p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .empty {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 600px) {
+    .hero {
+      flex-direction: column;
+      text-align: center;
+      gap: 1.5rem;
+    }
+
+    .hero__social {
+      justify-content: center;
+    }
+
+    .hero__name {
+      font-size: 1.7rem;
+    }
+  }
+</style>

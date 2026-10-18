@@ -1,0 +1,455 @@
+---
+import { menu } from '../../config'
+import Icon from '../Icon/Icon.astro'
+
+const pathname = Astro.url.pathname
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+
+// 去掉 base 前缀后比较，判断当前页
+const current = pathname.replace(base, '') || '/'
+
+const isActive = (path: string) => {
+  if (path === '/') return current === '/' || current === ''
+  return current.startsWith(path)
+}
+---
+
+<header class="header" id="site-header">
+  <div class="container-xxl header__inner">
+    <a href={`${base}/`} class="header__logo" aria-label="返回首页">
+      <span class="header__logo-mark">xilan</span>
+    </a>
+
+    <nav class="header__nav" aria-label="主导航">
+      <ul class="header__menu">
+        {
+          menu.map((item) => (
+            <li>
+              <a
+                href={`${base}${item.path}`}
+                class:list={['header__link', { 'is-active': isActive(item.path) }]}
+                aria-current={isActive(item.path) ? 'page' : undefined}
+                data-label={item.label}
+              >
+                <span class="header__link-char">{item.title}</span>
+                <span class="header__link-label">{item.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <!--
+        搜索：点击图标在页头原地展开输入框，
+        输入内容按回车或点「搜索」才跳转到 /search?q=...
+      -->
+      <form class="quick-search" id="quick-search" action={`${base}/search`} method="get" role="search">
+        <button
+          class="quick-search__toggle"
+          id="quick-search-toggle"
+          type="button"
+          aria-label="搜索"
+          title="搜索"
+          aria-expanded="false"
+        >
+          <Icon name="search" size="1em" />
+        </button>
+        <input
+          class="quick-search__input"
+          id="quick-search-input"
+          type="search"
+          name="q"
+          placeholder="搜索…"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="搜索关键词"
+          tabindex="-1"
+        />
+        <button class="quick-search__submit" type="submit" tabindex="-1">搜索</button>
+      </form>
+
+      <button
+        class="theme-toggle"
+        id="theme-toggle"
+        type="button"
+        aria-label="切换深色模式"
+        title="切换深色模式"
+      >
+        <span class="theme-toggle__icon theme-toggle__icon--sun"><Icon name="sun" size="1em" /></span>
+        <span class="theme-toggle__icon theme-toggle__icon--moon"><Icon name="moon" size="1em" /></span>
+      </button>
+      <button
+        class="menu-toggle"
+        id="menu-toggle"
+        type="button"
+        aria-label="打开菜单"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 移动端抽屉 -->
+  <div class="mobile-menu" id="mobile-menu" hidden>
+    <ul>
+      {
+        menu.map((item) => (
+          <li>
+            <a
+              href={`${base}${item.path}`}
+              class:list={['mobile-menu__link', { 'is-active': isActive(item.path) }]}
+            >
+              <span class="mobile-menu__char">{item.title}</span>
+              <span>{item.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-opacity);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  }
+
+  .header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    height: 4rem;
+  }
+
+  /* 菜单整体右移：用 margin-left 推动，而不是靠 space-between 平分 */
+  .header__nav {
+    margin-left: auto;
+    margin-right: 3rem;
+  }
+
+  .header__logo-mark {
+    font-family: var(--serif-font);
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--black);
+    position: relative;
+  }
+
+  .header__logo-mark::after {
+    content: '。';
+    color: var(--primary);
+  }
+
+  .header__menu {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 单字菜单：默认显示单字，悬停时展开标签 */
+  .header__link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    color: var(--text);
+    font-family: var(--serif-font);
+    font-size: 1.05rem;
+    transition: color 0.25s var(--ease-out), background 0.25s var(--ease-out);
+  }
+
+  .header__link-label {
+    position: absolute;
+    bottom: -1.55rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    font-family: var(--sans-font);
+    font-size: 0.68rem;
+    white-space: nowrap;
+    color: var(--primary);
+    background: var(--surface-solid);
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-spring);
+  }
+
+  .header__link:hover,
+  .header__link:focus-visible {
+    color: var(--primary);
+    background: var(--primary-soft);
+    opacity: 1;
+  }
+
+  .header__link:hover .header__link-label,
+  .header__link:focus-visible .header__link-label {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .header__link.is-active {
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .header__link.is-active::after {
+    content: '';
+    position: absolute;
+    bottom: 0.3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--primary);
+  }
+
+  .header__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: color 0.25s var(--ease-out), border-color 0.25s var(--ease-out),
+      background 0.25s var(--ease-out);
+  }
+
+  .theme-toggle:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  /* ---------- 页头快速搜索 ---------- */
+  .quick-search {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    transition: border-color 0.3s var(--ease-out), background 0.3s var(--ease-out),
+      box-shadow 0.3s var(--ease-out);
+  }
+
+  .quick-search.is-open {
+    border-color: var(--border);
+    background: var(--surface);
+    padding-right: 0.25rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+
+  .quick-search.is-open:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+
+  .quick-search__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: color 0.25s var(--ease-out), border-color 0.25s var(--ease-out),
+      background 0.25s var(--ease-out);
+  }
+
+  .quick-search__toggle:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  /* 展开后图标变成普通按钮，去掉圆环 */
+  .quick-search.is-open .quick-search__toggle {
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  /* 输入框默认收起，展开后滑出 */
+  .quick-search__input {
+    width: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.88rem;
+    opacity: 0;
+    transition: width 0.32s var(--ease-spring), opacity 0.2s var(--ease-out),
+      padding 0.32s var(--ease-spring);
+  }
+
+  .quick-search.is-open .quick-search__input {
+    width: 11rem;
+    padding-inline: 0.15rem;
+    opacity: 1;
+  }
+
+  .quick-search__input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.75;
+  }
+
+  .quick-search__input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .quick-search__submit {
+    display: none;
+    padding: 0.22rem 0.65rem;
+    border: none;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.78rem;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s var(--ease-out);
+  }
+
+  .quick-search.is-open .quick-search__submit {
+    display: inline-block;
+  }
+
+  .quick-search__submit:hover {
+    background: var(--primary-ink);
+  }
+
+  .theme-toggle__icon {
+    display: inline-flex;
+  }
+
+  .theme-toggle__icon--sun {
+    display: none;
+  }
+
+  :global(html.dark) .theme-toggle__icon--sun {
+    display: inline-flex;
+  }
+
+  :global(html.dark) .theme-toggle__icon--moon {
+    display: none;
+  }
+
+  .menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .menu-toggle span {
+    display: block;
+    height: 1.5px;
+    background: var(--text);
+    border-radius: 1px;
+    transition: transform 0.3s var(--ease-out), opacity 0.2s var(--ease-out);
+  }
+
+  .menu-toggle[aria-expanded='true'] span:nth-child(1) {
+    transform: translateY(6.5px) rotate(45deg);
+  }
+
+  .menu-toggle[aria-expanded='true'] span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .menu-toggle[aria-expanded='true'] span:nth-child(3) {
+    transform: translateY(-6.5px) rotate(-45deg);
+  }
+
+  .mobile-menu {
+    border-top: 1px solid var(--border);
+    padding: 0.75rem 1.25rem 1.25rem;
+  }
+
+  .mobile-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .mobile-menu__link {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.7rem 0.5rem;
+    border-radius: 10px;
+    color: var(--text);
+  }
+
+  .mobile-menu__link:hover,
+  .mobile-menu__link.is-active {
+    background: var(--primary-soft);
+    color: var(--primary);
+    opacity: 1;
+  }
+
+  .mobile-menu__char {
+    font-family: var(--serif-font);
+    font-size: 1.15rem;
+    width: 1.5rem;
+    text-align: center;
+  }
+
+  @media (max-width: 720px) {
+    .header__nav {
+      display: none;
+    }
+    .menu-toggle {
+      display: flex;
+    }
+  }
+</style>

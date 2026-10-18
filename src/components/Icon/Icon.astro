@@ -1,0 +1,33 @@
+---
+import { icons } from './icons'
+
+interface Props {
+  name: string
+  size?: number | string
+  class?: string
+  title?: string
+}
+
+const { name, size = '1em', class: className = '', title } = Astro.props
+const d = icons[name]
+if (!d) {
+  console.warn(`[Icon] 未知图标: ${name}`)
+}
+---
+
+{
+  d && (
+    <svg
+      viewBox="0 0 512 512"
+      width={size}
+      height={size}
+      class={className}
+      fill="currentColor"
+      aria-hidden={title ? undefined : 'true'}
+      role={title ? 'img' : undefined}
+    >
+      {title && <title>{title}</title>}
+      <path d={d} />
+    </svg>
+  )
+}

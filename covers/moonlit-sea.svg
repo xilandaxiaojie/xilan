@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#0c1a2b"/>
+      <stop offset="50%" stop-color="#152a3d"/>
+      <stop offset="100%" stop-color="#1e2136"/>
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="0.22" cy="0.24" r="0.3">
+      <stop offset="0%" stop-color="#fdf6e3" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#fdf6e3" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1f8f93" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#0c1a2b" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#night)"/>
+  <circle cx="264" cy="151" r="78" fill="#fdf6e3" opacity="0.94"/>
+  <rect width="1200" height="630" fill="url(#moonGlow)"/>
+  <circle cx="240" cy="128" r="12" fill="#e8ddc2" opacity="0.5"/>
+  <circle cx="292" cy="176" r="8" fill="#e8ddc2" opacity="0.45"/>
+  <g fill="#fff">
+    <circle cx="120" cy="90" r="2" opacity="0.9"/>
+    <circle cx="430" cy="70" r="1.6" opacity="0.7"/>
+    <circle cx="560" cy="150" r="2.2" opacity="0.85"/>
+    <circle cx="700" cy="60" r="1.5" opacity="0.6"/>
+    <circle cx="820" cy="140" r="2" opacity="0.9"/>
+    <circle cx="950" cy="80" r="1.8" opacity="0.75"/>
+    <circle cx="1080" cy="170" r="2.3" opacity="0.85"/>
+    <circle cx="1150" cy="90" r="1.6" opacity="0.7"/>
+    <circle cx="380" cy="250" r="1.8" opacity="0.65"/>
+    <circle cx="620" cy="300" r="1.5" opacity="0.6"/>
+    <circle cx="880" cy="240" r="2" opacity="0.8"/>
+    <circle cx="1040" cy="330" r="1.7" opacity="0.7"/>
+  </g>
+  <path d="M0 430 C 200 400, 380 440, 560 420 C 740 400, 920 445, 1200 415 L1200 630 L0 630 Z" fill="url(#sea)"/>
+  <g stroke="#7fe3db" stroke-width="2" opacity="0.35" fill="none">
+    <path d="M150 500 Q 200 490 250 500 T 350 500"/>
+    <path d="M420 540 Q 470 530 520 540 T 620 540"/>
+    <path d="M700 505 Q 750 495 800 505 T 900 505"/>
+    <path d="M520 480 Q 570 470 620 480 T 720 480"/>
+    <path d="M900 560 Q 950 550 1000 560 T 1100 560"/>
+  </g>
+</svg>

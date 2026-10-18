@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import PostCard from '../../components/PostCard.astro'
+import PageHead from '../../components/PageHead.astro'
+import { getPosts } from '../../lib/content'
+
+const posts = getPosts().filter((p) => !p.draft)
+posts.sort((a, b) => {
+  if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
+  return b.date.getTime() - a.date.getTime()
+})
+---
+
+<BaseLayout title="博文" description="所有文章">
+  <div class="container-xxl">
+    <PageHead char="文" title="博文" sub={`${posts.length} 篇`} />
+
+    <div class="post-list">
+      {
+        posts.length === 0 ? (
+          <p class="empty">还没有文章。在仓库根目录的 posts/ 里新建一个 .md 文件即可。</p>
+        ) : (
+          posts.map((post, i) => <PostCard post={post} delay={Math.min(i, 8) * 0.05} />)
+        )
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .post-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .empty {
+    color: var(--text-secondary);
+  }
+</style>

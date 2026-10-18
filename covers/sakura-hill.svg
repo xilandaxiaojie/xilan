@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0%" stop-color="#a8ece8"/>
+      <stop offset="45%" stop-color="#cdf4f1"/>
+      <stop offset="100%" stop-color="#fde8f0"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.75" cy="0.2" r="0.5">
+      <stop offset="0%" stop-color="#fff8e0" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#fff8e0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hill1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6fd3ca" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#a8e8e2" stop-opacity="0.3"/>
+    </linearGradient>
+    <linearGradient id="hill2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f7bfd6" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#fde3ee" stop-opacity="0.25"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#sky)"/>
+  <rect width="1200" height="630" fill="url(#sun)"/>
+  <g fill="#fff" opacity="0.8">
+    <ellipse cx="240" cy="130" rx="120" ry="34"/>
+    <ellipse cx="180" cy="148" rx="80" ry="26"/>
+    <ellipse cx="310" cy="148" rx="86" ry="28"/>
+    <ellipse cx="760" cy="95" rx="95" ry="28"/>
+    <ellipse cx="700" cy="112" rx="62" ry="20"/>
+    <ellipse cx="820" cy="112" rx="68" ry="22"/>
+  </g>
+  <path d="M0 430 C 160 350, 300 390, 460 425 C 620 460, 760 380, 930 420 C 1060 450, 1120 400, 1200 420 L1200 630 L0 630 Z" fill="url(#hill1)"/>
+  <path d="M0 520 C 180 470, 360 520, 540 490 C 720 460, 900 520, 1080 495 C 1140 487, 1180 495, 1200 492 L1200 630 L0 630 Z" fill="url(#hill2)"/>
+  <g fill="#ffd0e2" opacity="0.9">
+    <ellipse cx="90" cy="240" rx="8" ry="4.5" transform="rotate(24 90 240)"/>
+    <ellipse cx="200" cy="330" rx="7" ry="4" transform="rotate(-30 200 330)"/>
+    <ellipse cx="380" cy="210" rx="8" ry="4.5" transform="rotate(46 380 210)"/>
+    <ellipse cx="520" cy="300" rx="6" ry="3.5" transform="rotate(-20 520 300)"/>
+    <ellipse cx="660" cy="230" rx="8" ry="4.5" transform="rotate(30 660 230)"/>
+    <ellipse cx="880" cy="280" rx="7" ry="4" transform="rotate(-44 880 280)"/>
+    <ellipse cx="1000" cy="200" rx="8" ry="4.5" transform="rotate(18 1000 200)"/>
+    <ellipse cx="1120" cy="320" rx="6" ry="3.5" transform="rotate(58 1120 320)"/>
+    <ellipse cx="160" cy="440" rx="7" ry="4" transform="rotate(-12 160 440)"/>
+    <ellipse cx="700" cy="430" rx="8" ry="4.5" transform="rotate(36 700 430)"/>
+  </g>
+</svg>

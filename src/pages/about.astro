@@ -1,0 +1,153 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import PageHead from '../components/PageHead.astro'
+import { site } from '../config'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+---
+
+<BaseLayout title="关于" description={`关于 ${site.author.name}`}>
+  <div class="container-xxl">
+    <PageHead char="余" title="关于" />
+
+    <div class="about-hero surface">
+      <img
+        src={`${base}${site.author.avatar}`}
+        alt={site.author.name}
+        width="96"
+        height="96"
+        class="about-avatar"
+      />
+      <div>
+        <h2 class="about-name">{site.author.name}<span>。</span></h2>
+        <p class="about-bio">{site.author.bio}</p>
+      </div>
+    </div>
+
+    <div class="prose about-body">
+      <p>{site.introduction}</p>
+
+      <h2>这个小站是什么</h2>
+      <p>
+        这里是一个纯静态的个人博客，用
+        <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a>
+        构建，托管在 GitHub Pages 上。
+      </p>
+      <p>
+        站点的每一篇文章都是仓库里的 Markdown 文件。写完 push 上去，GitHub Actions
+        会自动构建并发布，没有数据库，也不需要服务器。
+      </p>
+
+      <h2>风格</h2>
+      <p>
+        主色是初音绿 <code>#39c5bb</code>。导航用单字菜单：源、文、记、览、索、余。
+        毛玻璃表面、从下往上的入场动画、衬线标题配无衬线正文。
+      </p>
+
+      <h2>写作</h2>
+      <p>
+        文章放在仓库根目录的 <code>posts/</code>，手记放在 <code>notes/</code>，
+        正文用到的图片放在 <code>images/</code>，封面放在 <code>covers/</code>。
+        用 Obsidian 把仓库根目录当作 vault 打开就能直接写。
+      </p>
+
+      <h2>联系</h2>
+      <p>可以在这些地方找到我：</p>
+      <ul>
+        {
+          site.social
+            .filter((s) => s.url.startsWith('http'))
+            .map((s) => (
+              <li>
+                <a href={s.url} target="_blank" rel="noopener noreferrer">
+                  {s.title}
+                </a>
+              </li>
+            ))
+        }
+      </ul>
+    </div>
+
+    <div class="tech-stack">
+      <span class="tech-label">本站使用</span>
+      <div class="tech-chips">
+        <span class="tech-chip">Astro</span>
+        <span class="tech-chip">GitHub Pages</span>
+        <span class="tech-chip">Markdown</span>
+        <span class="tech-chip">Obsidian</span>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-hero {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .about-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid var(--surface-solid);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+    flex-shrink: 0;
+  }
+
+  .about-name {
+    font-size: 1.6rem;
+    margin: 0 0 0.2rem;
+  }
+
+  .about-name span {
+    color: var(--primary);
+  }
+
+  .about-bio {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .about-body h2 {
+    font-size: 1.25rem;
+  }
+
+  .tech-stack {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .tech-label {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-family: var(--mono-font);
+  }
+
+  .tech-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+  }
+
+  .tech-chip {
+    font-size: 0.78rem;
+    padding: 0.22rem 0.7rem;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+  }
+
+  @media (max-width: 600px) {
+    .about-hero {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>

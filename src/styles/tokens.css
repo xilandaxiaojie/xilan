@@ -1,0 +1,119 @@
+/* ==========================================================================
+   xilan — 设计令牌
+   主色 #39c5bb（初音绿），暗色模式换成更深的 #1f8f93。
+   毛玻璃、半透明表面、衬线标题构成整体的视觉语言。
+   ========================================================================== */
+
+:root {
+  /* 品牌色 */
+  --green: #39c5bb;
+  --red: rgb(255, 59, 48);
+  --yellow: #ffc107;
+  --blue: #6495ed;
+  --purple: #8a2be2;
+  --pink: #eb445a;
+  --brown: #795548;
+
+  /* 派生 */
+  --primary: var(--green);
+  --secondary: var(--yellow);
+  --accent: var(--primary);
+  --primary-soft: rgba(57, 197, 187, 0.12);
+  --primary-glow: rgba(57, 197, 187, 0.35);
+  /* 用于正文/小字的强调色：比 --primary 更深，保证对比度 */
+  --primary-ink: #0f7c76;
+
+  /* 表面与文字 */
+  --light-bg: #fff;
+  --black: #353535;
+  --text: #353535;
+  --text-secondary: #8e8e93;
+  --bg-opacity: rgba(255, 255, 255, 0.72);
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-solid: #fff;
+  --border: rgba(0, 0, 0, 0.08);
+
+  /* 灰阶 */
+  --gray-1: #8e8e93;
+  --gray-2: #aeaeb2;
+  --gray-3: rgb(199, 199, 204);
+  --gray-4: rgb(209, 209, 214);
+  --gray-5: rgb(229, 229, 234);
+  --gray-6: rgb(242, 242, 247);
+
+  --shallow: #eee;
+
+  /* 字体 —— 标题衬线，正文无衬线 */
+  --serif-font: 'Noto Serif CJK SC', 'Noto Serif SC', 'Source Han Serif SC',
+    'Source Han Serif', source-han-serif-sc, 'Songti SC', 'Hiragino Mincho ProN',
+    'Noto Serif JP', SimSun, 'Microsoft YaHei', serif;
+  --sans-font: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei',
+    'Segoe UI', Roboto, Helvetica, 'Noto Sans SC', 'Hiragino Sans GB', sans-serif;
+  --mono-font: 'JetBrains Mono', 'Operator Mono', Monaco, Consolas, 'Courier New',
+    monospace;
+
+  /* 布局 */
+  --content-width: 46rem;
+  --wide-width: 72rem;
+  --radius: 12px;
+  --radius-lg: 20px;
+
+  /* 动效 —— 带一点回弹的弹簧感曲线 */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.08), 0 16px 40px rgba(57, 197, 187, 0.12);
+
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+
+  --green: #1f8f93;
+  --red: rgb(255, 69, 58);
+  --yellow: #ffc107;
+  --purple: #b260ea;
+  --pink: #eb4b63;
+  --brown: #c6aa9f;
+
+  --primary: var(--green);
+  --primary-soft: rgba(31, 143, 147, 0.16);
+  /* 暗色背景下主题色本身已足够亮，直接用 */
+  --primary-ink: #5fd8d0;
+  --primary-glow: rgba(31, 143, 147, 0.4);
+
+  --light-bg: #111;
+  --black: #ddd;
+  --text: #ddd;
+  --text-secondary: #8e8e93;
+  --bg-opacity: rgba(29, 29, 31, 0.72);
+  --surface: rgba(29, 29, 31, 0.72);
+  --surface-solid: #1c1c1e;
+  --border: rgba(255, 255, 255, 0.1);
+
+  --gray-1: rgb(142, 142, 147);
+  --gray-2: rgb(99, 99, 102);
+  --gray-3: rgb(72, 72, 74);
+  --gray-4: rgb(58, 58, 60);
+  --gray-5: rgb(44, 44, 46);
+  --gray-6: rgb(28, 28, 30);
+
+  --shallow: #333;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(31, 143, 147, 0.2);
+}
+
+/* 不支持 backdrop-filter 时改用不透明背景 */
+@supports not (backdrop-filter: blur(1px)) {
+  :root {
+    --bg-opacity: #fff;
+    --surface: #fff;
+  }
+  html.dark {
+    --bg-opacity: #1d1d1f;
+    --surface: #1d1d1f;
+  }
+}

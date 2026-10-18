@@ -1,0 +1,19 @@
+---
+/**
+ * 页面标题区 —— 全站统一使用，保证每个页面的标题都落在同一条左基准线上。
+ * 字标（单个汉字圆圈）+ 标题 + 右侧计数。
+ */
+interface Props {
+  char: string
+  title: string
+  sub?: string
+}
+
+const { char, title, sub } = Astro.props
+---
+
+<header class="page-head">
+  <span class="page-head__char" aria-hidden="true">{char}</span>
+  <h1 class="page-head__title">{title}</h1>
+  {sub && <p class="page-head__sub">{sub}</p>}
+</header>

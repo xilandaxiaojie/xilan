@@ -1,0 +1,324 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import Icon from '../../components/Icon/Icon.astro'
+import { getPosts, normalizeImagePaths } from '../../lib/content'
+import { renderMarkdown } from '../../lib/markdown'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+
+export function getStaticPaths() {
+  const posts = getPosts().filter((p) => !p.draft)
+  return posts.map((post) => ({ params: { id: post.id }, props: { post } }))
+}
+
+const { post } = Astro.props
+const { title, description, date, updated, tags, category, cover } = post
+
+// 渲染正文
+const { html, headings } = await renderMarkdown(normalizeImagePaths(post.body))
+
+// 上一篇 / 下一篇（按时间）
+const allPosts = getPosts().filter((p) => !p.draft).sort((a, b) => b.date.getTime() - a.date.getTime())
+const idx = allPosts.findIndex((p) => p.id === post.id)
+const prev = allPosts[idx + 1]
+const next = allPosts[idx - 1]
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
+
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3)
+
+const coverSrc = cover
+  ? /^https?:\/\//.test(cover)
+    ? cover
+    : `${base}${cover}`
+  : undefined
+---
+
+<BaseLayout title={title} description={description} ogType="article" image={coverSrc}>
+  <article class="container-xxl article">
+    <!-- 封面 -->
+    {
+      coverSrc && (
+        <div class="article__cover">
+          <img src={coverSrc} alt="" width="1200" height="630" />
+        </div>
+      )
+    }
+    <!-- 文章头部 -->
+    <header class="article__header">
+      <div class="article__tags">
+        {category && <span class="article__category"><Icon name="folder" size="0.7em" />{category}</span>}
+        {tags.map((tag) => <span class="article__tag">#{tag}</span>)}
+      </div>
+
+      <h1 class="article__title">{title}</h1>
+
+      {description && <p class="article__desc">{description}</p>}
+
+      <div class="article__meta">
+        <time datetime={date.toISOString()}>
+          <Icon name="calendar" size="0.75em" /> {fmt(date)}
+        </time>
+        {updated && (
+          <span class="article__updated">
+            <Icon name="clock" size="0.75em" /> 更新于 {fmt(updated)}
+          </span>
+        )}
+      </div>
+    </header>
+
+    <div class="article__layout">
+      <!-- 正文 -->
+      <div class="prose article__body" set:html={html} />
+
+      <!-- 目录 -->
+      {
+        toc.length > 1 && (
+          <aside class="article__toc">
+            <p class="toc-title">目录</p>
+            <ul>
+              {toc.map((h) => (
+                <li class:list={['toc-item', `toc-depth-${h.depth}`]}>
+                  <a href={`#${h.slug}`}>{h.text}</a>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )
+      }
+    </div>
+
+    <!-- 上下篇 -->
+    <nav class="article__nav" aria-label="文章导航">
+      {
+        prev ? (
+          <a href={`${base}/posts/${prev.id}/`} class="nav-link nav-link--prev">
+            <span class="nav-link__label">
+              <Icon name="arrow-left" size="0.75em" /> 上一篇
+            </span>
+            <span class="nav-link__title">{prev.title}</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next ? (
+          <a href={`${base}/posts/${next.id}/`} class="nav-link nav-link--next">
+            <span class="nav-link__label">
+              下一篇 <Icon name="arrow-right" size="0.75em" />
+            </span>
+            <span class="nav-link__title">{next.title}</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+    </nav>
+  </article>
+</BaseLayout>
+
+<style>
+  .article__cover {
+    margin-bottom: 2rem;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border);
+  }
+
+  .article__cover img {
+    width: 100%;
+    aspect-ratio: 1200 / 630;
+    object-fit: cover;
+    display: block;
+  }
+
+  .article__header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .article__tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .article__category {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+  }
+
+  .article__tag {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .article__title {
+    font-size: clamp(1.6rem, 4vw, 2.1rem);
+    margin-bottom: 0.6rem;
+    line-height: 1.35;
+  }
+
+  .article__desc {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+
+  .article__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-family: var(--mono-font);
+  }
+
+  .article__meta span,
+  .article__meta time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .article__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 14rem;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .article__body {
+    min-width: 0;
+  }
+
+  .article__toc {
+    position: sticky;
+    top: 5.5rem;
+    font-size: 0.82rem;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+  }
+
+  .toc-title {
+    font-family: var(--serif-font);
+    font-weight: 600;
+    color: var(--black);
+    margin: 0 0 0.7rem;
+    font-size: 0.85rem;
+  }
+
+  .article__toc ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 2px solid var(--border);
+  }
+
+  .toc-item a {
+    display: block;
+    padding: 0.3rem 0 0.3rem 0.85rem;
+    margin-left: -2px;
+    border-left: 2px solid transparent;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    transition: color 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+  }
+
+  .toc-item a:hover {
+    color: var(--primary-ink);
+    border-left-color: var(--primary);
+    opacity: 1;
+  }
+
+  .toc-depth-3 a {
+    padding-left: 1.6rem;
+    font-size: 0.78rem;
+  }
+
+  .article__nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1rem 1.2rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.25s var(--ease-out), transform 0.25s var(--ease-spring);
+  }
+
+  .nav-link:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+
+  .nav-link--next {
+    text-align: right;
+    grid-column: 2;
+  }
+
+  .nav-link__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--primary-ink);
+  }
+
+  .nav-link--next .nav-link__label {
+    justify-content: flex-end;
+  }
+
+  .nav-link__title {
+    font-family: var(--serif-font);
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--black);
+  }
+
+  @media (max-width: 900px) {
+    .article__layout {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .article__toc {
+      display: none;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .article__nav {
+      grid-template-columns: 1fr;
+    }
+    .nav-link--next {
+      grid-column: 1;
+      text-align: left;
+    }
+    .nav-link--next .nav-link__label {
+      justify-content: flex-start;
+    }
+  }
+</style>

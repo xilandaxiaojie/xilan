@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+---
+
+<BaseLayout title="页面不存在">
+  <div class="container notfound">
+    <p class="notfound__code">404</p>
+    <h1 class="notfound__title">这页走丢了</h1>
+    <p class="notfound__desc">你要找的页面可能被移动过，或者从来没有存在过。</p>
+    <a href={`${base}/`} class="notfound__btn">回到首页</a>
+  </div>
+</BaseLayout>
+
+<style>
+  .notfound {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 55vh;
+  }
+
+  .notfound__code {
+    font-family: var(--serif-font);
+    font-size: clamp(4rem, 18vw, 8rem);
+    font-weight: 700;
+    line-height: 1;
+    margin: 0;
+    background: linear-gradient(135deg, var(--primary), var(--pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 0.05em;
+  }
+
+  .notfound__title {
+    font-size: 1.3rem;
+    margin: 1rem 0 0.5rem;
+  }
+
+  .notfound__desc {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .notfound__btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.55rem 1.5rem;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.9rem;
+    transition: transform 0.25s var(--ease-spring), box-shadow 0.25s var(--ease-out);
+    box-shadow: 0 4px 14px var(--primary-glow);
+  }
+
+  .notfound__btn:hover {
+    transform: translateY(-2px);
+    opacity: 1;
+    box-shadow: 0 8px 22px var(--primary-glow);
+  }
+</style>

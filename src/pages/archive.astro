@@ -1,0 +1,194 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import PageHead from '../components/PageHead.astro'
+import { getPosts, getNotes, stripMarkdown } from '../lib/content'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+
+const posts = getPosts()
+  .filter((p) => !p.draft)
+  .map((p) => ({
+    kind: 'post' as const,
+    title: p.title,
+    date: p.date,
+    href: `${base}/posts/${p.id}/`,
+  }))
+
+const notes = getNotes()
+  .filter((n) => !n.draft)
+  .map((n) => ({
+    kind: 'note' as const,
+    title: stripMarkdown(n.body).slice(0, 42),
+    date: n.date,
+    href: `${base}/notes/#${n.id}`,
+  }))
+
+// 合并后按时间倒序
+const timeline = [...posts, ...notes].sort((a, b) => b.date.getTime() - a.date.getTime())
+
+// 按年份分组
+const byYear = new Map<number, typeof timeline>()
+for (const item of timeline) {
+  const y = item.date.getFullYear()
+  if (!byYear.has(y)) byYear.set(y, [])
+  byYear.get(y)!.push(item)
+}
+const years = [...byYear.keys()].sort((a, b) => b - a)
+
+const monthDay = (d: Date) =>
+  `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+---
+
+<BaseLayout title="归档" description="博文与手记的完整时间线">
+  <div class="container-xxl">
+    <PageHead char="览" title="归档" sub={`${posts.length} 篇 · ${notes.length} 条`} />
+
+    <div class="legend">
+      <span class="legend__item"><i class="dot dot--post"></i>博文</span>
+      <span class="legend__item"><i class="dot dot--note"></i>手记</span>
+    </div>
+
+    {
+      years.length === 0 ? (
+        <p class="empty">还没有内容。</p>
+      ) : (
+        years.map((year) => (
+          <section class="year">
+            <h2 class="year__label">
+              {year}
+              <span class="year__count">{byYear.get(year)!.length}</span>
+            </h2>
+            <ul class="year__list">
+              {byYear.get(year)!.map((item) => (
+                <li class:list={['item', `item--${item.kind}`]}>
+                  <a href={item.href}>
+                    <time class="item__date" datetime={item.date.toISOString()}>
+                      {monthDay(item.date)}
+                    </time>
+                    <span class="item__kind">{item.kind === 'post' ? '文' : '记'}</span>
+                    <span class="item__title">{item.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .empty {
+    color: var(--text-secondary);
+  }
+
+  .legend {
+    display: flex;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+
+  .legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+
+  .dot--post {
+    background: var(--primary);
+  }
+
+  .dot--note {
+    background: var(--pink);
+  }
+
+  .year {
+    margin-bottom: 2.25rem;
+  }
+
+  .year__label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--mono-font);
+    font-size: 1.05rem;
+    color: var(--black);
+    margin-bottom: 0.75rem;
+  }
+
+  .year__count {
+    font-size: 0.72rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+  }
+
+  .year__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .item a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    color: var(--text);
+    transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out);
+  }
+
+  .item a:hover {
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+    opacity: 1;
+  }
+
+  .item__date {
+    font-family: var(--mono-font);
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    min-width: 3.2rem;
+  }
+
+  .item__kind {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 50%;
+    font-family: var(--serif-font);
+    font-size: 0.62rem;
+    line-height: 1;
+  }
+
+  .item--post .item__kind {
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+  }
+
+  .item--note .item__kind {
+    background: rgba(235, 68, 90, 0.12);
+    color: var(--pink);
+  }
+
+  .item__title {
+    font-family: var(--serif-font);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+</style>

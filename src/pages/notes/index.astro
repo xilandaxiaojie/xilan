@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import PageHead from '../../components/PageHead.astro'
+import { getNotes } from '../../lib/content'
+import { renderMarkdown } from '../../lib/markdown'
+import { normalizeImagePaths } from '../../lib/content'
+
+const notes = getNotes().filter((n) => !n.draft)
+
+// 渲染每条手记
+const rendered = await Promise.all(
+  notes.map(async (note) => ({
+    note,
+    html: (await renderMarkdown(normalizeImagePaths(note.body))).html,
+  })),
+)
+
+// 按年月分组
+const groups = new Map<string, typeof rendered>()
+for (const item of rendered) {
+  const d = item.note.date
+  const key = `${d.getFullYear()} 年 ${String(d.getMonth() + 1).padStart(2, '0')} 月`
+  if (!groups.has(key)) groups.set(key, [])
+  groups.get(key)!.push(item)
+}
+
+const fmt = (d: Date) => d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
+---
+
+<BaseLayout title="手记" description="随手写下的短句与生活片段">
+  <div class="container-xxl">
+    <PageHead char="记" title="手记" sub={`${notes.length} 条`} />
+
+    {
+      notes.length === 0 ? (
+        <p class="empty">
+          还没有手记。在仓库根目录的 notes/ 里新建一个 .md 文件就能写。
+        </p>
+      ) : (
+        [...groups.entries()].map(([month, items]) => (
+          <section class="group">
+            <h2 class="group__month">{month}</h2>
+            <div class="timeline">
+              {items.map(({ note, html }) => (
+                <article class="entry" id={note.id}>
+                  <div class="entry__dot" />
+                  <time class="entry__date" datetime={note.date.toISOString()}>
+                    {fmt(note.date)}
+                  </time>
+                  <div class="entry__body prose surface" set:html={html} />
+                  {note.tags.length > 0 && (
+                    <div class="entry__tags">
+                      {note.tags.map((t) => (
+                        <span>#{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          </section>
+        ))
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .empty {
+    color: var(--text-secondary);
+  }
+
+  .group {
+    margin-bottom: 2.5rem;
+  }
+
+  .group__month {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-family: var(--mono-font);
+    font-weight: 400;
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--border);
+  }
+
+  .entry {
+    position: relative;
+    margin-bottom: 1.5rem;
+    scroll-margin-top: 5.5rem;
+  }
+
+  .entry__dot {
+    position: absolute;
+    left: -1.72rem;
+    top: 1.35rem;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+
+  .entry__date {
+    display: inline-block;
+    font-family: var(--mono-font);
+    font-size: 0.78rem;
+    color: var(--primary-ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .entry__body {
+    padding: 1.1rem 1.35rem;
+    border-radius: var(--radius);
+  }
+
+  .entry__body :global(p) {
+    margin-bottom: 0.7rem;
+    font-size: 0.93rem;
+    line-height: 1.85;
+  }
+
+  .entry__body :global(p:last-of-type) {
+    margin-bottom: 0;
+  }
+
+  .entry__tags {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.7rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+</style>

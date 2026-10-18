@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#eafaf8"/>
+      <stop offset="45%" stop-color="#f6fbfa"/>
+      <stop offset="100%" stop-color="#fdf0f4"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="0.15" cy="0.12" r="0.42">
+      <stop offset="0%" stop-color="#39c5bb" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#39c5bb" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.88" cy="0.82" r="0.45">
+      <stop offset="0%" stop-color="#f7bfd6" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#f7bfd6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow3" cx="0.7" cy="0.1" r="0.32">
+      <stop offset="0%" stop-color="#bfe9ff" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#bfe9ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <rect width="1920" height="1080" fill="url(#glow1)"/>
+  <rect width="1920" height="1080" fill="url(#glow3)"/>
+  <rect width="1920" height="1080" fill="url(#glow2)"/>
+
+  <!-- 细网格 -->
+  <g stroke="#39c5bb" stroke-opacity="0.05" stroke-width="1">
+    <path d="M240 0V1080M480 0V1080M720 0V1080M960 0V1080M1200 0V1080M1440 0V1080M1680 0V1080"/>
+    <path d="M0 240H1920M0 480H1920M0 720H1920M0 960H1920"/>
+  </g>
+
+  <!-- 漂浮圆环 -->
+  <g fill="none" stroke-linecap="round">
+    <circle cx="300" cy="240" r="90" stroke="#39c5bb" stroke-opacity="0.14" stroke-width="2"/>
+    <circle cx="1640" cy="300" r="130" stroke="#f7bfd6" stroke-opacity="0.24" stroke-width="2"/>
+    <circle cx="1500" cy="860" r="70" stroke="#39c5bb" stroke-opacity="0.12" stroke-width="2"/>
+    <circle cx="220" cy="880" r="110" stroke="#bfe9ff" stroke-opacity="0.3" stroke-width="2"/>
+  </g>
+
+  <!-- 小星点 -->
+  <g fill="#39c5bb" opacity="0.22">
+    <circle cx="520" cy="160" r="3"/>
+    <circle cx="1180" cy="140" r="4"/>
+    <circle cx="1760" cy="560" r="3"/>
+    <circle cx="860" cy="960" r="4"/>
+    <circle cx="120" cy="560" r="3"/>
+    <circle cx="1400" cy="620" r="2.5"/>
+  </g>
+
+  <!-- 右下角柔和渐变带 -->
+  <path d="M0 1080 C 400 940, 760 1020, 1120 960 C 1480 900, 1700 960, 1920 920 L1920 1080 Z"
+        fill="#39c5bb" opacity="0.05"/>
+</svg>

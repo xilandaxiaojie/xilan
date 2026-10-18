@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fffdf7"/>
+      <stop offset="100%" stop-color="#f3f6ff"/>
+    </linearGradient>
+    <linearGradient id="dot" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#39c5bb"/>
+      <stop offset="100%" stop-color="#8fe0da"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0 L0 0 0 40" fill="none" stroke="#39c5bb" stroke-opacity="0.12" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#paper)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- 左侧色块 -->
+  <circle cx="980" cy="120" r="190" fill="url(#dot)" opacity="0.16"/>
+  <circle cx="1080" cy="470" r="130" fill="#f7bfd6" opacity="0.3"/>
+
+  <!-- 抽象「代码/线条」元素 -->
+  <g stroke="#39c5bb" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.55">
+    <path d="M180 250 L120 315 L180 380"/>
+    <path d="M330 250 L390 315 L330 380"/>
+  </g>
+  <g stroke="#f0aac6" stroke-width="9" stroke-linecap="round" opacity="0.85">
+    <path d="M232 392 L278 238"/>
+  </g>
+  <g fill="#353535" opacity="0.14">
+    <rect x="470" y="240" width="300" height="16" rx="8"/>
+    <rect x="470" y="286" width="220" height="16" rx="8"/>
+    <rect x="470" y="332" width="260" height="16" rx="8"/>
+    <rect x="470" y="378" width="160" height="16" rx="8"/>
+  </g>
+  <!-- 光标 -->
+  <rect x="640" y="378" width="8" height="20" fill="#39c5bb" opacity="0.7"/>
+</svg>

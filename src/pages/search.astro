@@ -1,0 +1,395 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+---
+
+<BaseLayout title="搜索" description="搜索站内文章与手记">
+  <div class="container-xxl">
+    <div class="search-hero">
+      <div class="search-box">
+        <span class="search-box__icon" aria-hidden="true">
+          <svg viewBox="0 0 512 512" width="1.05em" height="1.05em" fill="currentColor">
+            <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376C296.3 401.1 253.9 416 208 416 93.1 416 0 322.9 0 208S93.1 0 208 0s208 93.1 208 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+          </svg>
+        </span>
+        <input
+          id="search-input"
+          type="search"
+          class="search-box__input"
+          placeholder="搜索文章与手记…"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="搜索"
+        />
+        <button id="search-clear" class="search-box__clear" type="button" aria-label="清空" hidden>
+          ×
+        </button>
+        <kbd class="search-box__kbd">/</kbd>
+      </div>
+
+      <p class="search-hint" id="search-hint">加载索引中…</p>
+    </div>
+
+    <div class="search-results" id="search-results"></div>
+
+    <p class="search-empty" id="search-empty" hidden>
+      没有找到相关内容，换个关键词试试。
+    </p>
+  </div>
+</BaseLayout>
+
+<script>
+  const BASE = (window.__XILAN_BASE__ ?? '/xilan').replace(/\/$/, '')
+  const input = document.getElementById('search-input') as HTMLInputElement
+  const clearBtn = document.getElementById('search-clear') as HTMLButtonElement
+  const results = document.getElementById('search-results') as HTMLElement
+  const hint = document.getElementById('search-hint') as HTMLElement
+  const empty = document.getElementById('search-empty') as HTMLElement
+
+  interface Item {
+    type: 'post' | 'note'
+    id: string
+    title: string
+    description: string
+    date: string
+    tags: string[]
+    category: string
+    text: string
+  }
+
+  let index: Item[] = []
+  let loaded = false
+
+  async function loadIndex() {
+    if (loaded) return
+    try {
+      const res = await fetch(`${BASE}/search-index.json`)
+      const data = await res.json()
+      index = data.items ?? []
+    } catch {
+      index = []
+    }
+    loaded = true
+  }
+
+  function escapeHtml(s: string): string {
+    return s.replace(
+      /[&<>"']/g,
+      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
+    )
+  }
+
+  /** 高亮命中的关键词 */
+  function highlight(text: string, q: string): string {
+    if (!q) return escapeHtml(text)
+    const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const re = new RegExp(`(${safe})`, 'gi')
+    return escapeHtml(text).replace(re, '<mark>$1</mark>')
+  }
+
+  /** 取关键词前后一段上下文 */
+  function snippet(text: string, q: string, len = 80): string {
+    const i = text.toLowerCase().indexOf(q.toLowerCase())
+    if (i < 0) return text.slice(0, len)
+    const start = Math.max(0, i - Math.floor(len / 3))
+    const end = Math.min(text.length, start + len)
+    return (start > 0 ? '…' : '') + text.slice(start, end) + (end < text.length ? '…' : '')
+  }
+
+  function score(item: Item, q: string): number {
+    const lower = q.toLowerCase()
+    let s = 0
+    if (item.title.toLowerCase().includes(lower)) s += 10
+    if (item.tags.some((t) => t.toLowerCase().includes(lower))) s += 6
+    if (item.description.toLowerCase().includes(lower)) s += 3
+    if (item.text.toLowerCase().includes(lower)) s += 1
+    return s
+  }
+
+  function render(items: Item[], q: string) {
+    if (!q) {
+      results.innerHTML = ''
+      empty.hidden = true
+      hint.textContent = `共 ${index.length} 条内容可以被搜到`
+      hint.hidden = false
+      return
+    }
+
+    if (items.length === 0) {
+      results.innerHTML = ''
+      hint.hidden = true
+      empty.hidden = false
+      return
+    }
+
+    hint.textContent = `找到 ${items.length} 条结果`
+    hint.hidden = false
+    empty.hidden = true
+
+    results.innerHTML = items
+      .map((item) => {
+        const href =
+          item.type === 'post' ? `${BASE}/posts/${item.id}/` : `${BASE}/notes/#${item.id}`
+        const kindLabel = item.type === 'post' ? '文' : '记'
+        const tags = item.tags
+          .map((t) => `<span class="r-tag">#${escapeHtml(t)}</span>`)
+          .join('')
+        const dateStr = item.date ? item.date.slice(0, 10) : ''
+        return `
+          <a class="r-card" href="${href}">
+            <div class="r-card__head">
+              <span class="r-kind r-kind--${item.type}">${kindLabel}</span>
+              <span class="r-title">${highlight(item.title, q)}</span>
+            </div>
+            <p class="r-snippet">${highlight(snippet(item.text, q), q)}</p>
+            <div class="r-meta">
+              <span class="r-date">${dateStr}</span>
+              ${tags}
+            </div>
+          </a>`
+      })
+      .join('')
+  }
+
+  let timer: number | undefined
+  function search(q: string) {
+    const query = q.trim()
+    clearBtn.hidden = query === ''
+
+    // 同步到 URL，方便分享和刷新后保留
+    const url = new URL(location.href)
+    if (query) url.searchParams.set('q', query)
+    else url.searchParams.delete('q')
+    history.replaceState(null, '', url)
+
+    if (!query) {
+      render([], '')
+      return
+    }
+    const matched = index
+      .map((item) => ({ item, s: score(item, query) }))
+      .filter((x) => x.s > 0)
+      .sort((a, b) => b.s - a.s || (a.item.date < b.item.date ? 1 : -1))
+      .map((x) => x.item)
+    render(matched, query)
+  }
+
+  input?.addEventListener('input', () => {
+    window.clearTimeout(timer)
+    timer = window.setTimeout(() => search(input.value), 120)
+  })
+
+  clearBtn?.addEventListener('click', () => {
+    input.value = ''
+    input.focus()
+    search('')
+  })
+
+  // 按 / 聚焦搜索框，Esc 清空
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== input) {
+      e.preventDefault()
+      input?.focus()
+    }
+    if (e.key === 'Escape' && document.activeElement === input) {
+      input.value = ''
+      search('')
+    }
+  })
+
+  const params = new URLSearchParams(location.search)
+  const initial = params.get('q') ?? ''
+
+  loadIndex().then(() => {
+    if (initial) {
+      input.value = initial
+      search(initial)
+    } else {
+      render([], '')
+      // 从顶部图标进来时自动聚焦，直接就能打字
+      input?.focus()
+    }
+  })
+</script>
+
+<style>
+  .search-hero {
+    padding-block: 1rem 0;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.9rem 1.15rem;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    transition: border-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+  }
+
+  .search-box:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+
+  .search-box__icon {
+    display: inline-flex;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .search-box__input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 1.05rem;
+    color: var(--text);
+    font-family: inherit;
+  }
+
+  .search-box__input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.75;
+  }
+
+  .search-box__input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .search-box__clear {
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0.2rem;
+  }
+
+  .search-box__clear:hover {
+    color: var(--primary-ink);
+  }
+
+  .search-box__kbd {
+    font-family: var(--mono-font);
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .search-hint {
+    margin: 0.9rem 0 0;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+  }
+
+  .search-results {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .search-empty {
+    margin-top: 3rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  /* 结果卡片由 JS 动态插入，用 :global 才能命中 */
+  .search-results :global(.r-card) {
+    display: block;
+    padding: 1rem 1.15rem;
+    border-radius: var(--radius);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    animation: bottom-to-up 0.4s var(--ease-spring) both;
+    transition: transform 0.25s var(--ease-spring), border-color 0.25s var(--ease-out);
+  }
+
+  .search-results :global(.r-card:hover) {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    opacity: 1;
+  }
+
+  .search-results :global(.r-card__head) {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .search-results :global(.r-kind) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 50%;
+    font-family: var(--serif-font);
+    font-size: 0.65rem;
+    flex-shrink: 0;
+  }
+
+  .search-results :global(.r-kind--post) {
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+  }
+
+  .search-results :global(.r-kind--note) {
+    background: rgba(235, 68, 90, 0.12);
+    color: var(--pink);
+  }
+
+  .search-results :global(.r-title) {
+    font-family: var(--serif-font);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--black);
+    line-height: 1.5;
+  }
+
+  .search-results :global(.r-snippet) {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .search-results :global(.r-meta) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.73rem;
+    color: var(--text-secondary);
+  }
+
+  .search-results :global(.r-date) {
+    font-family: var(--mono-font);
+  }
+
+  .search-results :global(.r-tag) {
+    color: var(--primary-ink);
+  }
+
+  .search-results :global(mark) {
+    background: rgba(255, 214, 102, 0.55);
+    color: inherit;
+    padding: 0 1px;
+    border-radius: 2px;
+  }
+
+  :global(html.dark) .search-results :global(mark) {
+    background: rgba(57, 197, 187, 0.32);
+    color: #fff;
+  }
+</style>

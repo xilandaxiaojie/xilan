@@ -1,0 +1,243 @@
+/* ==========================================================================
+   正文排版 —— 文章内的 Markdown 渲染样式
+   ========================================================================== */
+
+.prose {
+  font-size: 1.02rem;
+  line-height: 1.9;
+  color: var(--text);
+  word-wrap: break-word;
+}
+
+.prose > *:first-child {
+  margin-top: 0;
+}
+
+.prose > *:last-child {
+  margin-bottom: 0;
+}
+
+/* 标题 */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  margin-top: 2em;
+  margin-bottom: 0.8em;
+  scroll-margin-top: 5.5rem;
+  position: relative;
+}
+
+.prose h1 {
+  font-size: 1.9rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+  padding-bottom: 0.4em;
+  border-bottom: 1px solid var(--border);
+}
+
+/* h2 前的小装饰 —— 主题色短竖线 */
+.prose h2::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 0.85em;
+  margin-right: 0.5em;
+  vertical-align: -0.05em;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--primary), transparent);
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+}
+
+.prose h4 {
+  font-size: 1.1rem;
+}
+
+/* 段落与列表 */
+.prose p {
+  margin-bottom: 1.4em;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 1.4em;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin-bottom: 0.45em;
+}
+
+.prose li::marker {
+  color: var(--primary);
+}
+
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.45em;
+  margin-bottom: 0;
+}
+
+/* 引用 —— 毛玻璃质感 + 主题色左边框 */
+.prose blockquote {
+  margin: 1.6em 0;
+  padding: 1em 1.25em;
+  border-left: 3px solid var(--primary);
+  border-radius: 0 10px 10px 0;
+  background: var(--primary-soft);
+  color: var(--text);
+  font-style: normal;
+}
+
+.prose blockquote > *:last-child {
+  margin-bottom: 0;
+}
+
+.prose blockquote p {
+  margin-bottom: 0.8em;
+}
+
+/* 行内代码 */
+.prose :not(pre) > code {
+  padding: 0.15em 0.42em;
+  font-size: 0.88em;
+  border-radius: 6px;
+  background: var(--gray-6);
+  color: var(--pink);
+  border: 1px solid var(--border);
+}
+
+html.dark .prose :not(pre) > code {
+  background: var(--gray-6);
+  color: #f0a8b8;
+}
+
+/* 代码块 */
+.prose pre {
+  margin: 1.6em 0;
+  padding: 1.1rem 1.25rem;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  border: 1px solid var(--border);
+  tab-size: 2;
+}
+
+.prose pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* 图片 */
+.prose img {
+  margin: 1.6em auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.prose figure {
+  margin: 1.6em 0;
+}
+
+.prose figcaption {
+  margin-top: 0.6em;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+/* 表格 */
+.prose table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  margin: 1.6em 0;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.prose thead {
+  background: var(--primary-soft);
+}
+
+.prose th,
+.prose td {
+  padding: 0.6em 0.9em;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.prose th {
+  font-weight: 600;
+  color: var(--black);
+}
+
+/* 链接 */
+.prose a {
+  color: var(--primary);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s var(--ease-out);
+}
+
+.prose a:hover {
+  border-bottom-color: var(--primary);
+}
+
+/* 分隔线 */
+.prose hr {
+  margin: 3em 0;
+  border: none;
+  text-align: center;
+  height: auto;
+}
+
+.prose hr::before {
+  content: ' ⁂ ';
+  color: var(--primary);
+  font-size: 1.2rem;
+  letter-spacing: 0.5em;
+}
+
+/* 强调 */
+.prose strong {
+  color: var(--black);
+  font-weight: 600;
+}
+
+.prose mark {
+  background: linear-gradient(transparent 60%, var(--primary-glow) 60%);
+  color: inherit;
+  padding: 0 0.1em;
+}
+
+.prose del {
+  color: var(--text-secondary);
+}
+
+/* 脚注 */
+.prose .footnotes {
+  margin-top: 3em;
+  padding-top: 1.5em;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* 外部链接小箭头 */
+.prose a[href^='http']:not([href*='xilandaxiaojie.github.io'])::after {
+  content: '↗';
+  font-size: 0.75em;
+  margin-left: 0.15em;
+  opacity: 0.6;
+}

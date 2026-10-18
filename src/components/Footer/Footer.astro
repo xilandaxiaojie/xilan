@@ -1,0 +1,150 @@
+---
+import { site } from '../../config'
+import Icon from '../Icon/Icon.astro'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+const year = new Date().getFullYear()
+---
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__left">
+      <p class="footer__motto">
+        「{site.motto.content}」
+        <span class="footer__motto-author">—— {site.motto.author}</span>
+      </p>
+      <p class="footer__copy">
+        &copy; {year} {site.title} · 用 Astro 构建
+      </p>
+      {
+        site.icp.enable && (
+          <p class="footer__icp">
+            <a href={site.icp.link} target="_blank" rel="noopener noreferrer">
+              {site.icp.label}
+            </a>
+          </p>
+        )
+      }
+    </div>
+
+    <nav class="footer__nav" aria-label="页脚导航">
+      {
+        site.footerNav.map((item) => (
+          <a
+            href={item.path.startsWith('http') ? item.path : `${base}${item.path}`}
+            target={item.newtab ? '_blank' : undefined}
+            rel={item.newtab ? 'noopener noreferrer' : undefined}
+          >
+            {item.name}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+
+  <div class="footer__social">
+    {
+      site.social.map((item) => (
+        <a
+          href={item.url.startsWith('http') ? item.url : `${base}${item.url}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={item.title}
+          title={item.title}
+        >
+          <Icon name={item.icon} size="1em" />
+        </a>
+      ))
+    }
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: 5rem;
+    padding-block: 2.5rem 2rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg-opacity);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .footer__inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .footer__motto {
+    font-family: var(--serif-font);
+    font-size: 1.05rem;
+    color: var(--black);
+    margin: 0 0 0.4rem;
+  }
+
+  .footer__motto-author {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-left: 0.35rem;
+  }
+
+  .footer__copy,
+  .footer__icp {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin: 0.2rem 0 0;
+  }
+
+  .footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.4rem;
+    font-size: 0.88rem;
+  }
+
+  .footer__nav a {
+    color: var(--text-secondary);
+  }
+
+  .footer__nav a:hover {
+    color: var(--primary);
+  }
+
+  .footer__social {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .footer__social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    font-size: 1rem;
+    transition: color 0.25s var(--ease-out), border-color 0.25s var(--ease-out),
+      transform 0.25s var(--ease-spring), background 0.25s var(--ease-out);
+  }
+
+  .footer__social a:hover {
+    color: #fff;
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+
+  @media (max-width: 600px) {
+    .footer__inner {
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+  }
+</style>

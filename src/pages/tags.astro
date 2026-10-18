@@ -1,0 +1,246 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import PageHead from '../components/PageHead.astro'
+import { getPosts, getNotes, stripMarkdown } from '../lib/content'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+
+const posts = getPosts().filter((p) => !p.draft)
+const notes = getNotes().filter((n) => !n.draft)
+
+interface Entry {
+  kind: 'post' | 'note'
+  title: string
+  date: Date
+  href: string
+  tags: string[]
+}
+
+const entries: Entry[] = [
+  ...posts.map((p) => ({
+    kind: 'post' as const,
+    title: p.title,
+    date: p.date,
+    href: `${base}/posts/${p.id}/`,
+    tags: p.tags,
+  })),
+  ...notes.map((n) => ({
+    kind: 'note' as const,
+    title: stripMarkdown(n.body).slice(0, 40),
+    date: n.date,
+    href: `${base}/notes/#${n.id}`,
+    tags: n.tags,
+  })),
+]
+
+// 汇总：标签 → 条目
+const tagMap = new Map<string, Entry[]>()
+for (const e of entries) {
+  for (const t of e.tags) {
+    if (!tagMap.has(t)) tagMap.set(t, [])
+    tagMap.get(t)!.push(e)
+  }
+}
+
+// 按使用次数排序
+const tags = [...tagMap.entries()]
+  .map(([name, items]) => ({ name, items, count: items.length }))
+  .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh-CN'))
+
+const maxCount = Math.max(1, ...tags.map((t) => t.count))
+
+/** 标签云字号：出现越多越大 */
+const sizeOf = (count: number) => (0.85 + (count / maxCount) * 0.5).toFixed(2)
+
+const fmtDate = (d: Date) =>
+  d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })
+---
+
+<BaseLayout title="标签" description="按标签浏览全部内容">
+  <div class="container-xxl">
+    <PageHead char="签" title="标签" sub={`${tags.length} 个`} />
+
+    {
+      tags.length === 0 ? (
+        <p class="empty">还没有标签。在文章的 frontmatter 里加上 tags 字段即可。</p>
+      ) : (
+        <>
+          <section class="cloud surface">
+            {tags.map((t) => (
+              <a
+                href={`#tag-${encodeURIComponent(t.name)}`}
+                class="cloud__item"
+                style={`font-size:${sizeOf(t.count)}rem`}
+              >
+                <span class="cloud__hash">#</span>
+                {t.name}
+                <span class="cloud__count">{t.count}</span>
+              </a>
+            ))}
+          </section>
+
+          {tags.map((t) => (
+            <section class="tag-section" id={`tag-${encodeURIComponent(t.name)}`}>
+              <h2 class="tag-section__title">
+                <span class="tag-section__name">
+                  <span class="cloud__hash">#</span>
+                  {t.name}
+                </span>
+                <span class="tag-section__count">{t.count}</span>
+              </h2>
+
+              <ul class="tag-section__list">
+                {t.items
+                  .slice()
+                  .sort((a, b) => b.date.getTime() - a.date.getTime())
+                  .map((item) => (
+                    <li class:list={['entry', `entry--${item.kind}`]}>
+                      <a href={item.href}>
+                        <time datetime={item.date.toISOString()}>{fmtDate(item.date)}</time>
+                        <span class="entry__kind">{item.kind === 'post' ? '文' : '记'}</span>
+                        <span class="entry__title">{item.title}</span>
+                      </a>
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          ))}
+        </>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .empty {
+    color: var(--text-secondary);
+  }
+
+  /* ---------- 标签云 ---------- */
+  .cloud {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.7rem 1.2rem;
+    padding: 1.5rem 1.6rem;
+    margin-bottom: 3rem;
+  }
+
+  .cloud__item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.1rem;
+    font-family: var(--serif-font);
+    color: var(--text);
+    line-height: 1.4;
+    transition: color 0.25s var(--ease-out), transform 0.25s var(--ease-spring);
+  }
+
+  .cloud__item:hover {
+    color: var(--primary-ink);
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+
+  .cloud__hash {
+    color: var(--primary);
+  }
+
+  .cloud__count {
+    font-family: var(--mono-font);
+    font-size: 0.6em;
+    color: var(--text-secondary);
+    margin-left: 0.15rem;
+  }
+
+  /* ---------- 标签分组 ---------- */
+  .tag-section {
+    margin-bottom: 2.5rem;
+    scroll-margin-top: 5.5rem;
+  }
+
+  .tag-section__title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tag-section__name {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.1rem;
+    font-family: var(--serif-font);
+  }
+
+  .tag-section__count {
+    font-family: var(--mono-font);
+    font-size: 0.72rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+  }
+
+  .tag-section__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .entry a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    color: var(--text);
+    transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out);
+  }
+
+  .entry a:hover {
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+    opacity: 1;
+  }
+
+  .entry time {
+    font-family: var(--mono-font);
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    min-width: 5.6rem;
+  }
+
+  .entry__kind {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 50%;
+    font-family: var(--serif-font);
+    font-size: 0.62rem;
+    line-height: 1;
+  }
+
+  .entry--post .entry__kind {
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+  }
+
+  .entry--note .entry__kind {
+    background: rgba(235, 68, 90, 0.12);
+    color: var(--pink);
+  }
+
+  .entry__title {
+    font-family: var(--serif-font);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+</style>

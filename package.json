@@ -1,0 +1,27 @@
+{
+  "name": "xilan-blog",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "二次元风格的静态博客，用 Astro 构建，部署在 GitHub Pages",
+  "scripts": {
+    "dev": "node scripts/build-search-index.mjs && astro dev",
+    "start": "astro dev",
+    "build": "node scripts/sync-assets.mjs && node scripts/build-search-index.mjs && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "assets": "node scripts/sync-assets.mjs",
+    "search": "node scripts/build-search-index.mjs",
+    "new": "node scripts/new-post.mjs"
+  },
+  "dependencies": {
+    "astro": "^5.14.1",
+    "@astrojs/rss": "^4.0.12",
+    "@astrojs/sitemap": "^3.6.0",
+    "sharp": "^0.34.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.9.2"
+  }
+}

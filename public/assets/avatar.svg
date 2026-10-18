@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 260 260">
+  <defs>
+    <radialGradient id="bg" cx="0.5" cy="0.35" r="0.75">
+      <stop offset="0%" stop-color="#8fe8e1"/>
+      <stop offset="60%" stop-color="#39c5bb"/>
+      <stop offset="100%" stop-color="#1f8f93"/>
+    </radialGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4ee3d8"/>
+      <stop offset="100%" stop-color="#1f8f93"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="130" cy="130" r="130" fill="url(#bg)"/>
+  <circle cx="130" cy="130" r="130" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="6"/>
+
+  <!-- 光斑 -->
+  <circle cx="70" cy="60" r="42" fill="#ffffff" opacity="0.14"/>
+  <circle cx="200" cy="200" r="56" fill="#ffffff" opacity="0.1"/>
+
+  <!-- 头发（后） -->
+  <path d="M130 46c-40 0-64 27-64 66 0 16 3 30 8 42 4-30 8-52 22-64 10 20 34 28 62 26 12-1 22 8 26 24 4-10 6-22 6-34 0-38-20-60-60-60z" fill="url(#hair)"/>
+
+  <!-- 脸 -->
+  <ellipse cx="130" cy="132" rx="46" ry="52" fill="#fff2e8"/>
+
+  <!-- 刘海 -->
+  <path d="M84 118c2-34 20-56 46-56s44 22 46 56c-8-18-24-28-46-28s-38 10-46 28z" fill="url(#hair)"/>
+
+  <!-- 眼睛 -->
+  <ellipse cx="110" cy="132" rx="9" ry="12" fill="#1f8f93"/>
+  <ellipse cx="150" cy="132" rx="9" ry="12" fill="#1f8f93"/>
+  <circle cx="112" cy="128" r="3.2" fill="#fff"/>
+  <circle cx="152" cy="128" r="3.2" fill="#fff"/>
+
+  <!-- 腮红 -->
+  <ellipse cx="100" cy="152" rx="9" ry="5" fill="#f7a8be" opacity="0.55"/>
+  <ellipse cx="160" cy="152" rx="9" ry="5" fill="#f7a8be" opacity="0.55"/>
+
+  <!-- 微笑 -->
+  <path d="M122 158q8 8 16 0" stroke="#c46a7d" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- 发饰 -->
+  <g transform="translate(176 96)">
+    <circle r="9" fill="#ffd166"/>
+    <circle r="4" fill="#fff3c4"/>
+  </g>
+</svg>
