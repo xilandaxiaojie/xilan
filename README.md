@@ -344,6 +344,18 @@ frontmatter 是标准 YAML，Obsidian 的「属性」面板能直接编辑。
 
 ---
 
+## 桌面管理工具
+
+不想碰命令行的话，`studio/` 里有一个桌面程序，登录 GitHub 后就能写文章、传图片、提交发布。
+
+- 双击 `studio/release/Xilan Studio-win32-x64/Xilan Studio.exe` 运行
+- 打不开就用同目录下的 `启动.bat`
+- 或者在 `studio/` 下执行 `npm install && npm run dev`
+
+详情见 [studio/README.md](studio/README.md)，出问题看 [studio/启动排查.md](studio/启动排查.md)。
+
+---
+
 ## 部署
 
 仓库已配置好 GitHub Actions。推送到 `main` 分支即可自动部署：

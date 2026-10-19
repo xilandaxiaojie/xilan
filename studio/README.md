@@ -6,11 +6,13 @@
 
 ## 快速开始
 
-### 方式一：安装包（推荐）
+### 方式一：运行打包好的程序
 
-1. 运行 `release/Xilan Studio Setup 0.1.0.exe`
-2. 安装完成后桌面会有图标，双击打开
-3. 填入 GitHub Token → 选择仓库 → 开始写
+进入 `release/Xilan Studio-win32-x64/`，双击 **Xilan Studio.exe**。
+
+如果双击没反应，改用 **启动.bat**——它会清掉干扰的环境变量，并在出错时把退出码显示出来。
+
+> 启动不了？见 [启动排查.md](启动排查.md)。
 
 ### 方式二：从源码运行
 
@@ -238,12 +240,20 @@ pinned: true
 
 ```bash
 npm run dev          # 启动 Electron
-npm run test:all     # 跑全部测试（170 项）
-node scripts/test-core.mjs      # 核心逻辑
-node scripts/test-e2e.mjs       # 完整写作流程
-node scripts/test-ipc.mjs       # IPC 接口
-node scripts/test-ui.mjs        # 界面一致性
-npm run dist         # 打包安装包
+npm test             # 跑全部测试（221 项）
+npm run preview      # 浏览器预览模式，看 http://localhost:4322
+npm run pack         # 打包到 release/
+```
+
+单独跑某一项测试：
+
+```bash
+node scripts/test-core.mjs      # 核心逻辑 39 项
+node scripts/test-e2e.mjs       # 完整写作流程 48 项
+node scripts/test-ipc.mjs       # IPC 接口 48 项
+node scripts/test-ui.mjs        # 界面一致性 35 项
+node scripts/test-browser.mjs   # 真实浏览器交互 19 项（需先 npm run preview）
+node scripts/verify-package.mjs # 打包产物结构 32 项
 ```
 
 ### 代码结构
