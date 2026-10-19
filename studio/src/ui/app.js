@@ -97,11 +97,22 @@ async function initWelcome() {
   })
 
   // 已登录过就直接进入仓库选择
-  const cfg = await call(window.api.config.get())
+  const cfg = await call(window.api.config.get()).catch(() => ({}))
+
   if (cfg?.hasToken && cfg.user) {
     state.user = cfg.user
     showRepoStep()
     loadRepoList()
+    return
+  }
+
+  // 浏览器版没有登录流程，但有仓库路径时直接进入
+  if (cfg?.repoPath) {
+    const dir = await call(window.api.repo.current()).catch(() => null)
+    if (dir) {
+      state.repoPath = dir
+      await enterApp()
+    }
   }
 }
 
@@ -1255,7 +1266,11 @@ async function renderOutline() {
    ============================================================ */
 
 ;(async () => {
+  // initWelcome 内部可能已经进入主界面（有仓库路径时），这里避免重复初始化
   await initWelcome()
+
+  if ($('#screen-app').hidden === false) return
+
   const dir = await call(window.api.repo.current()).catch(() => null)
   if (dir) {
     state.repoPath = dir

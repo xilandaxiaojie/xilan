@@ -73,11 +73,52 @@ function createWindow() {
     },
   })
 
-  mainWindow.loadFile(path.join(__dirname, '../src/ui/index.html'))
+  // 兜底：万一 ready-to-show 没触发，3 秒后也把窗口显示出来，
+  // 否则用户看到的就是「双击没反应」
+  const safeShow = () => {
+    try {
+      if (mainWindow && typeof mainWindow.isDestroyed === 'function' && !mainWindow.isDestroyed()) {
+        if (typeof mainWindow.show === 'function') mainWindow.show()
+      }
+    } catch (err) {
+      console.error('[show]', err)
+    }
+  }
+
+  const fallback = setTimeout(safeShow, 3000)
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show()
+    clearTimeout(fallback)
+    safeShow()
   })
+
+  // 页面加载失败时，把错误显示在窗口里，而不是静默失败
+  const wc = mainWindow.webContents
+  if (wc && typeof wc.on === 'function') {
+    wc.on('did-fail-load', (_e, code, desc, url) => {
+      console.error('[load-fail]', code, desc, url)
+      safeShow()
+      if (typeof wc.executeJavaScript === 'function') {
+        wc.executeJavaScript(
+          `document.body.innerHTML = ${JSON.stringify(
+            `<div style="font:14px/1.6 system-ui;padding:40px;color:#333">
+               <h2 style="color:#c0392b">界面加载失败</h2>
+               <p>错误码：${code}</p><p>说明：${desc}</p><p>路径：${url}</p>
+             </div>`,
+          )}`,
+        ).catch(() => {})
+      }
+    })
+
+    wc.on('render-process-gone', (_e, details) => {
+      console.error('[render-gone]', JSON.stringify(details))
+    })
+  }
+
+  const loaded = mainWindow.loadFile(path.join(__dirname, '../src/ui/index.html'))
+  if (loaded && typeof loaded.catch === 'function') {
+    loaded.catch((err) => console.error('[loadFile]', err))
+  }
 
   // 外部链接用系统浏览器打开
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -95,6 +136,8 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+}).catch((err) => {
+  console.error('[whenReady]', err)
 })
 
 app.on('window-all-closed', () => {

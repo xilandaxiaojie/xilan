@@ -17,6 +17,7 @@ const SUITES = [
   ['IPC 层', 'test-ipc.mjs'],
   ['打包验证', 'verify-package.mjs'],
   ['浏览器界面', 'test-browser.mjs'],
+  ['浏览器版', 'test-browser-version.mjs'],
 ]
 
 const needsServer = new Set(['浏览器界面'])
@@ -32,6 +33,26 @@ const startServer = () => {
   })
   servers.push(proc)
   return new Promise((resolve) => setTimeout(resolve, 2500))
+}
+
+// 浏览器版用打包产物里自带的 node.exe 启动
+const startBrowserVersion = () => {
+  const dir = path.join(ROOT, 'release', '浏览器版')
+  const nodeExe = path.join(dir, 'node.exe')
+  const launcher = path.join(dir, 'launcher.mjs')
+
+  if (!fs.existsSync(nodeExe) || !fs.existsSync(launcher)) {
+    return Promise.resolve(false)
+  }
+
+  const proc = spawn(nodeExe, [launcher, '4399'], {
+    cwd: dir,
+    stdio: 'ignore',
+    detached: false,
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '' },
+  })
+  servers.push(proc)
+  return new Promise((resolve) => setTimeout(() => resolve(true), 3000))
 }
 
 const stopServers = () => {
@@ -54,6 +75,15 @@ for (const [name, file] of SUITES) {
 
   if (needsServer.has(name)) {
     await startServer()
+  }
+
+  if (name === '浏览器版') {
+    const started = await startBrowserVersion()
+    if (!started) {
+      console.log('✗ 浏览器版    跳过（release/浏览器版 不存在，先 npm run pack）')
+      results.push({ name, passed: false, status: '未打包' })
+      continue
+    }
   }
 
   const r = spawnSync(process.execPath, [filePath], {
@@ -91,7 +121,7 @@ for (const [name, file] of SUITES) {
     if (detail) console.log(`${detail}\n`)
   }
 
-  if (needsServer.has(name)) stopServers()
+  if (needsServer.has(name) || name === '浏览器版') stopServers()
 }
 
 stopServers()
