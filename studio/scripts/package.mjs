@@ -13,6 +13,13 @@ import path from 'node:path'
 const ROOT = process.cwd()
 const OUT = path.join(ROOT, 'release')
 
+// @electron/packager 默认把 Electron 缓存写到 %LOCALAPPDATA%\electron\Cache，
+// 某些受限环境下不可写，这里统一指向项目内目录
+const CACHE_DIR = path.join(ROOT, '.electron-cache')
+fs.mkdirSync(CACHE_DIR, { recursive: true })
+process.env.ELECTRON_CACHE = CACHE_DIR
+process.env.electron_config_cache = CACHE_DIR
+
 console.log('=== 清理旧产物 ===')
 
 // 先尝试结束占用 release 目录的进程（浏览器版会复制 node.exe 进去并运行）
@@ -49,12 +56,24 @@ if (fs.existsSync(OUT)) {
 
 console.log('=== 打包中（第一次会下载 Electron，可能要几分钟）===')
 
+// 直接用本地已下载的 Electron 运行时，避免 packager 再去下载
+const LOCAL_ELECTRON = path.join(ROOT, 'node_modules', 'electron', 'dist')
+if (!fs.existsSync(path.join(LOCAL_ELECTRON, 'electron.exe'))) {
+  throw new Error(
+    `找不到本地 Electron 运行时：${LOCAL_ELECTRON}\n` +
+      `请先在 node_modules/electron 下执行 node install.js 下载。`,
+  )
+}
+console.log('  使用本地 Electron:', fs.readFileSync(path.join(LOCAL_ELECTRON, 'version'), 'utf8').trim())
+
 const appPaths = await packager({
   dir: ROOT,
   out: OUT,
   name: 'Xilan Studio',
   platform: 'win32',
   arch: 'x64',
+  electronVersion: fs.readFileSync(path.join(LOCAL_ELECTRON, 'version'), 'utf8').trim(),
+  download: { cacheRoot: CACHE_DIR },
   appVersion: JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version,
   icon: path.join(ROOT, 'build', 'icon.ico'),
   overwrite: true,

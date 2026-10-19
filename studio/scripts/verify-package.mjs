@@ -34,9 +34,8 @@ ok(fs.existsSync(OUT), '产物目录存在', OUT)
 for (const f of [
   'Xilan Studio.exe',
   'icudtl.dat',
-  'libEGL.dll',
-  'libGLESv2.dll',
   'ffmpeg.dll',
+  'd3dcompiler_47.dll',
   'resources.pak',
   'v8_context_snapshot.bin',
 ]) {
@@ -44,6 +43,28 @@ for (const f of [
 }
 ok(fs.existsSync(path.join(OUT, 'locales')), 'locales 目录')
 ok(fs.existsSync(path.join(OUT, 'resources', 'app.asar')), 'resources/app.asar')
+
+// 运行时 DLL 与原版 Electron 保持一致
+const ELECTRON_DIST = path.join(process.cwd(), 'node_modules', 'electron', 'dist')
+if (fs.existsSync(ELECTRON_DIST)) {
+  const srcDlls = fs
+    .readdirSync(ELECTRON_DIST)
+    .filter((n) => n.toLowerCase().endsWith('.dll'))
+    .sort()
+  const outDlls = fs
+    .readdirSync(OUT)
+    .filter((n) => n.toLowerCase().endsWith('.dll'))
+    .sort()
+  const missingDll = srcDlls.filter((n) => !outDlls.includes(n))
+  ok(missingDll.length === 0, `运行时 DLL 齐全（${outDlls.length} 个）`, missingDll.join(', '))
+}
+
+// 版本号
+const verFile = path.join(OUT, 'version')
+if (fs.existsSync(verFile)) {
+  const ver = fs.readFileSync(verFile, 'utf8').trim()
+  ok(/^\d+\./.test(ver), '记录 Electron 版本', ver)
+}
 
 console.log('\n=== exe 元信息 ===')
 const vi = fs.existsSync(path.join(OUT, 'Xilan Studio.exe'))
