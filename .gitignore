@@ -15,13 +15,6 @@ public/search-index.json
 .tools/
 .tmp/
 
-# 桌面管理工具（不进博客仓库，避免拖慢部署）
-studio/node_modules/
-studio/release/
-studio/.npm-cache/
-studio/.electron-cache/
-studio/.tmp*/
-
 # 系统文件
 .DS_Store
 Thumbs.db
