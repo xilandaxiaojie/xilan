@@ -1,0 +1,44 @@
+{
+  "name": "xilan-studio",
+  "productName": "Xilan Studio",
+  "version": "0.1.0",
+  "description": "西兰博客桌面管理工具 —— 写作、预览、提交、发布",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "private": true,
+  "scripts": {
+    "dev": "electron .",
+    "icons": "node scripts/build-icons.mjs",
+    "test": "node scripts/test-all.mjs",
+    "preview": "node scripts/preview-server.mjs 4322",
+    "pack": "node scripts/package-portable.mjs",
+    "dist": "node scripts/build-icons.mjs && node scripts/package-portable.mjs"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.xilan.studio",
+    "productName": "Xilan Studio",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "src/ui/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md}"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}

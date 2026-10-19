@@ -1,6 +1,7 @@
 // 验证封面机制：写了路径就用路径，找不到就退回 covers/ 随机
 import fs from 'node:fs'
 import path from 'node:path'
+import { execFileSync } from 'node:child_process'
 
 const ROOT = process.cwd()
 const PUBLIC = path.join(ROOT, 'public')
@@ -33,25 +34,42 @@ function resolve(raw) {
 
 /* ---------- 准备测试素材 ---------- */
 console.log('=== 准备测试素材 ===')
-fs.mkdirSync(path.join(ROOT, 'assets'), { recursive: true })
+// 用一个不与站点素材冲突的目录，验证「任意目录都能当封面来源」
+fs.mkdirSync(path.join(ROOT, 'pics'), { recursive: true })
 fs.writeFileSync(
-  path.join(ROOT, 'assets', 'custom-bg.svg'),
+  path.join(ROOT, 'pics', 'custom-bg.svg'),
   '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"><rect width="1600" height="900" fill="#ffd166"/></svg>',
 )
 fs.writeFileSync(
   path.join(ROOT, 'images', 'cover-photo.svg'),
   '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"><rect width="1600" height="900" fill="#7fd8d0"/></svg>',
 )
-console.log('  ✓ assets/custom-bg.svg')
+console.log('  ✓ pics/custom-bg.svg')
 console.log('  ✓ images/cover-photo.svg')
+
+// 把这个目录同步到 public/，模拟真实构建流程
+const tmpPost = path.join(ROOT, 'posts', '__cover-test__.md')
+fs.writeFileSync(
+  tmpPost,
+  `---\ntitle: cover test\ndate: 2020-01-01\ncover: pics/custom-bg.svg\n---\n\n测试\n`,
+)
+try {
+  execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'sync-assets.mjs')], {
+    stdio: 'pipe',
+  })
+  console.log('  ✓ 已同步到 public/')
+} catch (e) {
+  console.log('  ✗ 同步失败: ' + String(e.message).slice(0, 60))
+}
+fs.rmSync(tmpPost, { force: true })
 
 /* ---------- 路径解析 ---------- */
 console.log('\n=== 路径解析（需先 npm run assets 同步到 public/） ===')
 const cases = [
   ['images/cover-photo.svg', '/images/cover-photo.svg', 'images 目录'],
-  ['assets/custom-bg.svg', '/assets/custom-bg.svg', '自定义目录'],
+  ['pics/custom-bg.svg', '/pics/custom-bg.svg', '自定义目录'],
   ['/images/cover-photo.svg', '/images/cover-photo.svg', '站点绝对路径'],
-  ['./assets/custom-bg.svg', '/assets/custom-bg.svg', '点斜杠'],
+  ['./pics/custom-bg.svg', '/pics/custom-bg.svg', '点斜杠'],
   ['covers/sakura-hill.svg', '/covers/sakura-hill.svg', '显式 covers 路径'],
   ['sakura-hill.svg', '/covers/sakura-hill.svg', '纯文件名 → covers/'],
   ['https://example.com/a.jpg', 'https://example.com/a.jpg', '外链（不检查）'],
@@ -63,7 +81,7 @@ for (const [raw, want, label] of cases) {
 }
 
 console.log('\n=== 找不到文件 → 退回随机 ===')
-for (const raw of ['images/不存在.svg', 'assets/nope.png', 'missing-file.svg']) {
+for (const raw of ['images/不存在.svg', 'pics/nope.png', 'missing-file.svg']) {
   const got = resolve(raw)
   ok(got === undefined, `${raw} 解析为 undefined`, String(got))
 }

@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'"
+    />
+    <title>Xilan Studio</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <!-- ========== 欢迎 / 登录 ========== -->
+    <div id="screen-welcome" class="screen screen--welcome">
+      <div class="welcome">
+        <div class="welcome__card">
+          <div class="welcome__logo">
+            <svg viewBox="0 0 48 48" width="48" height="48">
+              <rect width="48" height="48" rx="14" fill="url(#g1)" />
+              <defs>
+                <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#5fd8d0" />
+                  <stop offset="100%" stop-color="#1f8f93" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M15 13h13l6 6v16H15z"
+                fill="none"
+                stroke="#fff"
+                stroke-width="2.2"
+                stroke-linejoin="round"
+              />
+              <path d="M28 13v6h6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" />
+              <path d="M18 24h12M18 28h9" stroke="#fff" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </div>
+          <h1 class="welcome__title">Xilan Studio</h1>
+          <p class="welcome__sub">写文章、看效果、一键发布</p>
+
+          <!-- 步骤 1：登录 -->
+          <div id="welcome-login" class="welcome__step">
+            <label class="field-label" for="token-input">GitHub 访问令牌</label>
+            <input
+              id="token-input"
+              class="input"
+              type="password"
+              placeholder="ghp_xxxxxxxxxxxx"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <p class="hint">
+              在
+              <a href="#" id="open-token-page" class="link">GitHub 设置</a>
+              生成一个 Token，勾选 <code>repo</code> 权限即可。
+            </p>
+            <button id="btn-login" class="btn btn--primary btn--block">登录</button>
+            <p id="login-error" class="error" hidden></p>
+          </div>
+
+          <!-- 步骤 2：选仓库 -->
+          <div id="welcome-repo" class="welcome__step" hidden>
+            <div class="user-chip">
+              <img id="user-avatar" class="user-chip__avatar" alt="" />
+              <div>
+                <div id="user-name" class="user-chip__name"></div>
+                <button id="btn-logout" class="link link--small">切换账号</button>
+              </div>
+            </div>
+
+            <div class="repo-choices">
+              <div class="repo-choice">
+                <h3 class="repo-choice__title">克隆到本地</h3>
+                <p class="repo-choice__desc">把仓库拉下来，之后所有操作都在本地进行</p>
+                <div class="repo-row">
+                  <select id="repo-select" class="input input--select">
+                    <option value="">选择仓库…</option>
+                  </select>
+                  <button id="btn-clone" class="btn btn--primary">克隆</button>
+                </div>
+                <p class="hint hint--small" id="clone-target-hint"></p>
+              </div>
+
+              <div class="repo-choice">
+                <h3 class="repo-choice__title">打开已有目录</h3>
+                <p class="repo-choice__desc">已经克隆过？直接选文件夹就行</p>
+                <button id="btn-open-dir" class="btn btn--ghost btn--block">浏览目录…</button>
+              </div>
+            </div>
+            <p id="repo-error" class="error" hidden></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 主界面 ========== -->
+    <div id="screen-app" class="screen screen--app" hidden>
+      <header class="topbar">
+        <div class="topbar__left">
+          <span class="brand">Xilan Studio</span>
+          <button id="btn-repo-path" class="repo-path" title="点击打开目录"></button>
+        </div>
+        <div class="topbar__right">
+          <span id="git-badge" class="badge" hidden></span>
+          <button id="btn-refresh" class="btn btn--icon" title="刷新">
+            <svg viewBox="0 0 20 20" width="16" height="16">
+              <path
+                d="M16 10a6 6 0 1 1-1.8-4.3M16 3v4h-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+          <button id="btn-publish" class="btn btn--primary btn--sm">发布</button>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <!-- 侧栏 -->
+        <aside class="sidebar">
+          <div class="sidebar__head">
+            <div class="tabs">
+              <button class="tab is-active" data-kind="post">文章</button>
+              <button class="tab" data-kind="note">手记</button>
+            </div>
+            <button id="btn-new" class="btn btn--primary btn--sm">新建</button>
+          </div>
+
+          <div class="sidebar__search">
+            <input id="search-input" class="input input--sm" placeholder="搜索标题或标签…" />
+          </div>
+
+          <div class="sidebar__filters" id="filter-bar"></div>
+
+          <ul id="entry-list" class="entry-list"></ul>
+        </aside>
+
+        <!-- 编辑区 -->
+        <main class="editor-area">
+          <div id="editor-empty" class="empty-state">
+            <div class="empty-state__icon">✎</div>
+            <p>选择左侧的文章开始编辑，或点「新建」</p>
+          </div>
+
+          <div id="editor-main" class="editor" hidden>
+            <!-- frontmatter 表单 -->
+            <div class="meta-panel">
+              <div class="meta-panel__row">
+                <div class="meta-field meta-field--grow">
+                  <label class="field-label" for="field-title">标题</label>
+                  <input id="field-title" class="input input--title" placeholder="文章标题" />
+                </div>
+                <div class="meta-field">
+                  <label class="field-label" for="field-date">日期</label>
+                  <input id="field-date" class="input" type="date" />
+                </div>
+              </div>
+
+              <div class="meta-panel__row">
+                <div class="meta-field meta-field--grow">
+                  <label class="field-label" for="field-desc">摘要</label>
+                  <input id="field-desc" class="input" placeholder="一句话描述（可选）" />
+                </div>
+                <div class="meta-field">
+                  <label class="field-label" for="field-category">分类</label>
+                  <input id="field-category" class="input" placeholder="技术" list="category-list" />
+                  <datalist id="category-list"></datalist>
+                </div>
+              </div>
+
+              <div class="meta-panel__row meta-panel__row--wrap">
+                <div class="meta-field meta-field--grow">
+                  <label class="field-label">标签</label>
+                  <div class="tag-editor" id="tag-editor">
+                    <div class="tag-chips" id="tag-chips"></div>
+                    <input id="tag-input" class="tag-input" placeholder="输入后回车" />
+                  </div>
+                  <div class="tag-suggest" id="tag-suggest"></div>
+                </div>
+              </div>
+
+              <div class="meta-panel__row">
+                <div class="meta-field meta-field--grow">
+                  <label class="field-label">封面</label>
+                  <div class="cover-picker">
+                    <div id="cover-preview" class="cover-preview cover-preview--empty">未指定</div>
+                    <div class="cover-actions">
+                      <input id="field-cover" class="input input--sm" placeholder="留空则自动随机" />
+                      <button id="btn-cover-clear" class="btn btn--ghost btn--xs">清除</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="meta-field meta-field--checks">
+                  <label class="check"
+                    ><input id="field-pinned" type="checkbox" /><span>置顶</span></label
+                  >
+                  <label class="check"
+                    ><input id="field-draft" type="checkbox" /><span>草稿</span></label
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- 编辑 / 预览 -->
+            <div class="editor__toolbar">
+              <div class="toolbar-left">
+                <button id="btn-insert-image" class="btn btn--ghost btn--xs">插入图片</button>
+                <button id="btn-insert-link" class="btn btn--ghost btn--xs">链接</button>
+                <button id="btn-insert-code" class="btn btn--ghost btn--xs">代码块</button>
+                <div class="toolbar-sep"></div>
+                <button id="btn-outline" class="btn btn--ghost btn--xs" title="文档大纲">大纲</button>
+              </div>
+              <div class="toolbar-right">
+                <span id="save-state" class="save-state"></span>
+                <div class="view-switch">
+                  <button class="view-btn is-active" data-view="split">分栏</button>
+                  <button class="view-btn" data-view="edit">编辑</button>
+                  <button class="view-btn" data-view="preview">预览</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="editor__body" id="editor-body">
+              <div class="editor__pane editor__pane--write">
+                <textarea
+                  id="md-input"
+                  class="md-input"
+                  spellcheck="false"
+                  placeholder="开始写吧…"
+                ></textarea>
+                <aside id="outline" class="outline" hidden></aside>
+                <div id="drop-hint" class="drop-hint">松开即可插入图片</div>
+              </div>
+              <div class="editor__pane editor__pane--preview">
+                <article id="preview" class="preview prose"></article>
+              </div>
+            </div>
+
+            <!-- 图片面板 -->
+            <div id="image-panel" class="image-panel" hidden>
+              <div class="image-panel__head">
+                <span class="image-panel__title">文章图片</span>
+                <span id="image-count" class="muted"></span>
+              </div>
+              <div id="image-grid" class="image-grid"></div>
+            </div>
+          </div>
+        </main>
+
+        <!-- 右侧变更栏 -->
+        <aside id="changes-panel" class="changes-panel" hidden>
+          <div class="changes-panel__head">
+            <span>待发布变更</span>
+            <button id="btn-close-changes" class="btn btn--icon btn--xs">×</button>
+          </div>
+          <ul id="change-list" class="change-list"></ul>
+          <div class="changes-panel__foot">
+            <input id="commit-msg" class="input input--sm" placeholder="提交说明（可选）" />
+            <button id="btn-commit" class="btn btn--primary btn--block btn--sm">
+              提交并推送
+            </button>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ========== Diff 弹窗 ========== -->
+    <div id="modal-diff" class="modal" hidden>
+      <div class="modal__backdrop" data-close></div>
+      <div class="modal__panel modal__panel--wide">
+        <div class="modal__head">
+          <h2 class="modal__title">确认发布</h2>
+          <button class="btn btn--icon" data-close>×</button>
+        </div>
+        <div class="modal__body">
+          <div class="publish-summary" id="publish-summary"></div>
+          <div class="diff-view" id="diff-view"></div>
+          <div class="commit-box">
+            <label class="field-label" for="modal-commit-msg">提交说明</label>
+            <input id="modal-commit-msg" class="input" placeholder="例如：新增文章《xxx》" />
+          </div>
+        </div>
+        <div class="modal__foot">
+          <button class="btn btn--ghost" data-close>取消</button>
+          <button id="btn-confirm-publish" class="btn btn--primary">确认提交并推送</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 通用提示 ========== -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

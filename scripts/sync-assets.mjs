@@ -27,10 +27,11 @@ const readCoverDirs = () => {
       const raw = fs.readFileSync(path.join(abs, name), 'utf8')
       const m = raw.match(/^cover\s*:\s*(.+)$/m)
       if (!m) continue
-      let v = m[1].trim().replace(/^["']|["']$/g, '')
+      const raw0 = m[1].trim().replace(/^["']|["']$/g, '')
       // 外链或 data URI 跳过
-      if (/^(https?:)?\/\//.test(v) || v.startsWith('data:')) continue
-      v = v.replace(/^\.\//, '').replace(/^\/+/, '')
+      if (/^(https?:)?\/\//.test(raw0) || raw0.startsWith('data:')) continue
+      // 归一化后再计算目录，否则 ./pics/x.svg 会算出 "." 这样的错误目录
+      const v = raw0.replace(/^\.\//, '').replace(/^\/+/, '')
       // 纯文件名：只会在 covers/ 里，已经固定同步过
       if (!v.includes('/')) continue
       const dir = v.slice(0, v.lastIndexOf('/'))
@@ -89,9 +90,11 @@ for (const name of ['avatar.svg', 'background.svg', 'background-night.svg']) {
 }
 
 // 加上 md 里额外引用的目录
+// assets/ 是站点自带素材（头像、背景），归 public/ 管，绝不能被同步覆盖
+const PROTECTED = new Set(['covers', 'images', 'assets'])
 const extra = readCoverDirs()
 for (const d of extra) {
-  if (d === 'covers' || d === 'images') continue
+  if (PROTECTED.has(d)) continue
   console.log(`[assets] 检测到封面引用目录: ${d}/`)
   syncDir(d)
 }
